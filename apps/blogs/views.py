@@ -1,59 +1,28 @@
-from rest_framework import status
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from rest_framework import generics
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAdminUser
 
-from apps.blogs.models import BlogPost
-from apps.blogs.serializers import CategorySerializer, BlogPostSerializer
-from apps.blogs.utils import basic_auth_required
-
-
-@api_view(['GET', 'POST'])
-def category_list_create(request):
-    if request.method == "POST":
-        serializer = CategorySerializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(
-                data=serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-    return None
+from apps.blogs.models import BlogPost, Category
+from apps.blogs.serializers import BlogPostSerializer, CategorySerializer
+from apps.shared.utils.custom_response import CustomResponse
 
 
-@api_view(['GET', 'POST'])
-@basic_auth_required
-def blog_list_create(request):
-    if request.method == "POST":
-        serializer = BlogPostSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(
-                data=serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-        return None
-    else:
-        blogs = BlogPost.objects.all()
-        serializer = BlogPostSerializer(blogs, many=True)
-        return Response(
+class BlogListCreateAPIView(generics.ListCreateAPIView):
+    queryset = BlogPost.objects.all()
+    serializer_class = BlogPostSerializer
+    permission_classes = [IsAdminUser]
+
+    def list(self, request, *args, **kwargs):
+        blogs = self.get_queryset()
+        serializer = self.serializer_class(blogs, many=True)
+        return CustomResponse.success(
+            message_key='SUCCESS',
+            request=request,
             data=serializer.data,
-            status=status.HTTP_201_CREATED
+            name="sanjarbek"
         )
 
 
-@api_view(['GET', 'PATCH'])
-@basic_auth_required
-def blog_detail(request, pk):
-    blog = BlogPost.objects.get(pk=pk)
-    if request.method == "PATCH":
-        serializer = BlogPostSerializer(
-            data=request.data,
-            instance=blog
-        )
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(
-                data=serializer.data,
-                status=status.HTTP_201_CREATED
-            )
-    return None
+class CategoryCreateAPIView(CreateAPIView):
+    queryset = Category
+    serializer_class = CategorySerializer

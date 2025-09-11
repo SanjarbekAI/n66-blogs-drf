@@ -1,11 +1,10 @@
 from django.urls import path
 
-from apps.blogs.views import category_list_create, blog_list_create, blog_detail
+from apps.blogs.views import BlogListCreateAPIView, CategoryCreateAPIView
 
 app_name = 'blogs'
 
 urlpatterns = [
-    path('', blog_list_create),
-    path('<int:pk>/', blog_detail),
-    path('category/', category_list_create),
+    path('', BlogListCreateAPIView.as_view()),
+    path('category/', CategoryCreateAPIView.as_view()),
 ]

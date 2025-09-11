@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 
 from apps.blogs.models import Category, BlogPost
+from apps.shared.exceptions.custom_exceptions import CustomException
 
 
 class SimpleAuthorSerializer(serializers.ModelSerializer):
@@ -28,7 +29,7 @@ class CategorySerializer(serializers.ModelSerializer):
             words = ['spam', 'fake', 'scam']
             for word in words:
                 if word.strip().lower() in value.lower():
-                    raise serializers.ValidationError("You can not use that words")
+                    raise CustomException(message_key="BLOG_TITLE_NUMERIC_ERROR")
         else:
             raise serializers.ValidationError("Description can not be none")
         return value
@@ -52,7 +53,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def validate_title(self, value):
         if value.strip()[0].isnumeric():
-            raise serializers.ValidationError("Title can not start with numbers")
+            raise CustomException(message_key="BLOG_TITLE_NUMERIC_ERROR")
         return value
 
     def create(self, validated_data):
